@@ -10,6 +10,7 @@ type Results struct {
 	EOT         float64 `json:"equation_of_time"`
 	Declination float64 `json:"declination"`
 	SolarAngle  float64 `json:"solar_angle"`
+	SolarZenith float64 `json:"solar_zenith"`
 	DayLength   float64 `json:"day_length"`
 	Sunrise     float64 `json:"sunrise"`
 	Sunset      float64 `json:"sunset"`
@@ -24,6 +25,7 @@ func main() {
 	solarAngle := gosolar.SolarAltitudeAngle(day, latitude)
 	dayLength := gosolar.DayLength(day, latitude)
 	sunrise, sunset := gosolar.SunriseAndSunset(day, latitude, longitude)
+	solarZenith := gosolar.SolarZenithAngle(day, latitude)
 	results := &Results{
 		EOT:         eot,
 		Declination: declination,
@@ -31,6 +33,7 @@ func main() {
 		DayLength:   dayLength,
 		Sunrise:     sunrise,
 		Sunset:      sunset,
+		SolarZenith: solarZenith,
 	}
 
 	s, _ := json.MarshalIndent(results, "", "\t")

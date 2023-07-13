@@ -34,7 +34,22 @@ func SolarAltitudeAngle(day int, latitude float64) float64 {
 	return toDegrees(math.Asin(eq))
 }
 
-func SolarAzimuthAngle(day int, hourAngle float64) float64 {
+// SolarZenithAngle returns the Solar zenith angle in degrees calculated from the solar altitude angle,
+// assuming (sin altitude = cos zenith) then (zenith = Acos(sin altitude))
+func SolarZenithAngle(day int, latitude float64) float64 {
+	sinAltitudeAngle := math.Sin(toRadians(SolarAltitudeAngle(day, latitude)))
+	return toDegrees(math.Acos(sinAltitudeAngle))
+}
+
+func SolarAzimuthAngle(day int, latitude float64, hourAngle float64) float64 {
+	declination := toRadians(SolarDeclination(day))
+	solarAltitude := toRadians(SolarAltitudeAngle(day, latitude))
+	hourAngle = toRadians(hourAngle)
+	sinAz := (math.Cos(declination) * math.Sin(hourAngle)) / math.Cos(solarAltitude)
+	return math.Asin(sinAz)
+}
+
+func SolarIncidenceAngle(day int, latitude float64, tiltAngle float64, surfaceAzimuth float64, hourAngleDeg float64) float64 {
 	return 0
 }
 
