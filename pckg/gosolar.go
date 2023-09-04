@@ -79,9 +79,13 @@ func DayLength(day int, latitude float64) float64 {
 	return dayLength
 }
 
-// SunriseAndSunset returns the sunrise and sunset time as hours in solar time. It is necessary to correct the
-// result to account for timezone and DST. Ex: sunrise = 6.75 =6:45 am. Maybe inaccurate +- 5 min.
-func SunriseAndSunset(day int, latitude, longitude float64) (sunrise, sunset float64) {
+// SunriseAndSunset returns the sunrise and sunset time as hours in solar time. MAY BE INACCURATE +- 5 min.
+func SunriseAndSunset(day int, latitude, longitude float64, dst bool) (sunrise, sunset float64) {
+
+	dsTime := 0
+	if dst {
+		dsTime = 1
+	}
 	// Calculate the day length in hours.
 	dayLength := DayLength(day, latitude)
 	equationOfTime := EquationOfTime(day)
@@ -92,19 +96,19 @@ func SunriseAndSunset(day int, latitude, longitude float64) (sunrise, sunset flo
 	solarNoon := 12.0 + (((sMeridian-longitude)*4)+equationOfTime)/60.0
 
 	// Calculate the sunrise and sunset times in hours.
-	sunrise = solarNoon - (dayLength / 2.0)
-	sunset = solarNoon + (dayLength / 2.0)
+	sunrise = (solarNoon - (dayLength / 2.0)) + float64(dsTime)
+	sunset = (solarNoon + (dayLength / 2.0)) + float64(dsTime)
 
 	return sunrise, sunset
 }
 
 func SunriseTime(day int, latitude float64, longitude float64) float64 {
-	sunrise, _ := SunriseAndSunset(day, latitude, longitude)
+	sunrise, _ := SunriseAndSunset(day, latitude, longitude, true)
 	return sunrise
 }
 
 func SunsetTime(day int, latitude float64, longitude float64) float64 {
-	_, sunset := SunriseAndSunset(day, latitude, longitude)
+	_, sunset := SunriseAndSunset(day, latitude, longitude, true)
 	return sunset
 }
 

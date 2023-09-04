@@ -17,14 +17,14 @@ type Results struct {
 }
 
 func main() {
-	day := 175
-	latitude := 25.4687224
-	longitude := -80.37
+	day := 247
+	latitude := 45.0
+	longitude := 15.0
 	eot := gosolar.EquationOfTime(day)
 	declination := gosolar.SolarDeclination(day)
 	solarAngle := gosolar.SolarAltitudeAngle(day, latitude)
 	dayLength := gosolar.DayLength(day, latitude)
-	sunrise, sunset := gosolar.SunriseAndSunset(day, latitude, longitude)
+	sunrise, sunset := gosolar.SunriseAndSunset(day, latitude, longitude, true)
 	solarZenith := gosolar.SolarZenithAngle(day, latitude)
 	results := &Results{
 		EOT:         eot,
