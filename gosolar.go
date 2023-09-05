@@ -19,7 +19,7 @@ func SolarNoon(day int, longitude float64) float64 {
 	return (12 - EquationOfTime(day)) - 4*(lsm-longitude)
 }
 
-// SolarDeclination calculates the declination in degrees for any given day of the year
+// SolarDeclination returns the declination in degrees for any given day of the year
 func SolarDeclination(day int) float64 {
 	p := (360 / 365.0) * float64(284+day)
 
@@ -61,10 +61,8 @@ func DayLength(day int, latitude float64) float64 {
 	// Corrected angle for Sun's angular diameter and atmospheric refraction
 	solarDepressionAngle := toRadians(-1.15)
 
-	// Compute the cosine of the hour angle with the correction.
 	cosH := (math.Sin(solarDepressionAngle) - math.Sin(latitude)*math.Sin(declination)) / (math.Cos(latitude) * math.Cos(declination))
 
-	// Ensure that the value of cosH is in the range [-1, 1] to avoid domain errors with math.Acos
 	if cosH > 1 {
 		cosH = 1
 	} else if cosH < -1 {
@@ -79,7 +77,7 @@ func DayLength(day int, latitude float64) float64 {
 	return dayLength
 }
 
-// SunriseAndSunset returns the sunrise and sunset time as hours in solar time. MAY BE INACCURATE +- 5 min.
+// SunriseAndSunset returns the sunrise and sunset time as hours in solar time. ACCURACY +- 5 min.
 func SunriseAndSunset(day int, latitude, longitude float64, dst bool) (sunrise, sunset float64) {
 
 	dsTime := 0
