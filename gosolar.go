@@ -2,7 +2,26 @@ package gosolar
 
 import (
 	"math"
+	"time"
 )
+
+// JulianDay returns the Julian Day number for a valid date given in format YYYY-MM-DD. The result can be corrected for
+// time of the day (0 <= dayTime <=1) and timeZone
+func JulianDay(date string, dayTime float64, timeZone int) float64 {
+	startEpoch := 2415020.5
+	epoch := time.Date(1900, time.January, 1, 0, 0, 0, 0, time.UTC)
+	parsedDate, err := time.Parse("2006-01-02", date)
+
+	if err != nil {
+		return 0
+	}
+
+	// nanoseconds
+	elapsed := parsedDate.Sub(epoch)
+	days := elapsed.Hours() / 24
+
+	return days + startEpoch + (dayTime - float64(timeZone)/24)
+}
 
 // EquationOfTime Calculates the value for the equation of time for any given day of the year
 func EquationOfTime(day int) float64 {
