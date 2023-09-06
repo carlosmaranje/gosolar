@@ -37,7 +37,7 @@ func TestResults(t *testing.T) {
 	timeZone := "America/New_York" // float UTC timezone in hours. GMT+12:30 = 12.5
 	tz, _ := TimeZoneOffset("America/New_York")
 
-	sun, err := Calculator(latitude, longitude, dayTime, timeZone, date, true)
+	sun, err := Calculator(latitude, longitude, dayTime, timeZone, date)
 
 	if err != nil {
 		fmt.Println(err)

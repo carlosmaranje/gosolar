@@ -14,10 +14,9 @@ type SolarCalculation struct {
 	date      string  // string "YYYY-MM-DD"
 	dayTime   float64 // float time of the day/24
 	timeZone  float64 // float UTC timezone in hours. GMT+12:30 = 12.5
-	dST       bool
 }
 
-func Calculator(latitude, longitude, dayTime float64, timeZone, date string, dst bool) (*SolarCalculation, error) {
+func Calculator(latitude, longitude, dayTime float64, timeZone, date string) (*SolarCalculation, error) {
 
 	tz, _ := TimeZoneOffset(timeZone)
 
@@ -27,7 +26,6 @@ func Calculator(latitude, longitude, dayTime float64, timeZone, date string, dst
 		date:      date,
 		dayTime:   dayTime,
 		timeZone:  float64(tz) / 3600,
-		dST:       dst,
 	}
 
 	if err := sc.validate(); err != nil {
@@ -58,11 +56,6 @@ func (sc *SolarCalculation) SetDayTime(daytime float64) *SolarCalculation {
 
 func (sc *SolarCalculation) SetTimeZone(timeZone float64) *SolarCalculation {
 	sc.timeZone = timeZone
-	return sc
-}
-
-func (sc *SolarCalculation) SetDST(dst bool) *SolarCalculation {
-	sc.dST = dst
 	return sc
 }
 
@@ -233,11 +226,6 @@ func (sc *SolarCalculation) SunriseAndSunset() (sunrise, sunset float64) {
 
 	sunrise = (solarNoon*360 - hourAngle) / 15
 	sunset = (solarNoon*360 + hourAngle) / 15
-
-	if sc.dST {
-		sunrise += 1
-		sunset += 1
-	}
 
 	return sunrise, sunset
 }
