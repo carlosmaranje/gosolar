@@ -17,13 +17,16 @@ type SolarCalculation struct {
 	dST       bool
 }
 
-func Calculator(latitude, longitude, timeZone, dayTime float64, date string, dst bool) (*SolarCalculation, error) {
+func Calculator(latitude, longitude, dayTime float64, timeZone, date string, dst bool) (*SolarCalculation, error) {
+
+	tz, _ := TimeZoneOffset(timeZone)
+
 	sc := &SolarCalculation{
 		latitude:  latitude,
 		longitude: longitude,
 		date:      date,
 		dayTime:   dayTime,
-		timeZone:  timeZone,
+		timeZone:  float64(tz) / 3600,
 		dST:       dst,
 	}
 
@@ -255,6 +258,20 @@ func (sc *SolarCalculation) SunriseTime() float64 {
 func (sc *SolarCalculation) SunsetTime() float64 {
 	_, sunset := sc.SunriseAndSunset()
 	return sunset
+}
+
+// TimeZoneOffset returns the offset in seconds for a given TimeZone
+func TimeZoneOffset(timeZoneId string) (int, error) {
+	location, err := time.LoadLocation(timeZoneId)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return -1, err
+	}
+
+	t := time.Now().In(location)
+	_, offset := t.Zone()
+
+	return offset, nil
 }
 
 // toRadians converts an angle in degrees to radians

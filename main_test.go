@@ -25,17 +25,19 @@ type Results struct {
 	MeanObliqueEcliptic  float64 `json:"mean_oblique_ecliptic"`
 	ObliqueCorrection    float64 `json:"oblique_correction"`
 	SunHourAngle         float64 `json:"sun_hour_angle"`
+	TimeZoneOffset       float64 `json:"time_zone_offset"`
 }
 
 func TestResults(t *testing.T) {
 
-	latitude := 25.54821   // float Degrees
-	longitude := -80.37486 // float Degrees
-	date := "2023-09-05"   // string "YYYY-MM-DD"
-	dayTime := 0.5         // float time of the day/24
-	timeZone := -5.0       // float UTC timezone in hours. GMT+12:30 = 12.5
+	latitude := 25.54821           // float Degrees
+	longitude := -80.37486         // float Degrees
+	date := "2023-09-05"           // string "YYYY-MM-DD"
+	dayTime := 0.5                 // float time of the day/24
+	timeZone := "America/New_York" // float UTC timezone in hours. GMT+12:30 = 12.5
+	tz, _ := TimeZoneOffset("America/New_York")
 
-	sun, err := Calculator(latitude, longitude, timeZone, dayTime, date, true)
+	sun, err := Calculator(latitude, longitude, dayTime, timeZone, date, true)
 
 	if err != nil {
 		fmt.Println(err)
@@ -63,6 +65,7 @@ func TestResults(t *testing.T) {
 		MeanObliqueEcliptic:  sun.MeanObliqEcliptic(),
 		ObliqueCorrection:    sun.ObliqueCorrection(),
 		SunHourAngle:         sun.SunHourAngle(),
+		TimeZoneOffset:       float64(tz) / 3600,
 	}
 
 	s, _ := json.MarshalIndent(results, "", "\t")
