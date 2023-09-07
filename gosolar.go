@@ -150,6 +150,11 @@ func (sc *SolarCalculation) SunTrueLongitude() float64 {
 	return sc.GeomMeanLongSun() + sc.SunEquationOfCenter()
 }
 
+func (sc *SolarCalculation) TrueSolarTime() float64 {
+	result := sc.dayTime*1440 + sc.EquationOfTime() + 4*sc.longitude - 60*sc.timeZone
+	return math.Mod(result, 1440)
+}
+
 func (sc *SolarCalculation) SunApparentLongitude() float64 {
 	sunTrueLongitude := sc.SunTrueLongitude()
 	jC := sc.JulianCentury()
@@ -181,6 +186,10 @@ func (sc *SolarCalculation) SolarDeclination() float64 {
 }
 
 func (sc *SolarCalculation) SunHourAngle() float64 {
+	return (sc.TrueSolarTime() / 4) - 180
+}
+
+func (sc *SolarCalculation) HourAngleSunrise() float64 {
 	declination := sc.toRadians(sc.SolarDeclination())
 	latitude := sc.toRadians(sc.latitude)
 
@@ -192,37 +201,67 @@ func (sc *SolarCalculation) SunHourAngle() float64 {
 	return sc.toDegrees(hourAngle)
 }
 
-func (sc *SolarCalculation) SolarAltitudeAngle() float64 {
-	declination := sc.toRadians(sc.SolarDeclination())
-	hourAngle := sc.toRadians(float64(30))
-	latitude := sc.toRadians(sc.latitude)
-	eq := math.Sin(latitude)*math.Sin(declination) + math.Cos(latitude)*math.Cos(declination)*math.Cos(hourAngle)
-	return sc.toDegrees(math.Asin(eq))
-}
-
 // SolarZenithAngle returns the Solar zenith angle in degrees calculated from the solar altitude angle,
 // assuming (sin altitude = cos zenith) then (zenith = Acos(sin altitude))
 func (sc *SolarCalculation) SolarZenithAngle() float64 {
-	sinAltitudeAngle := math.Sin(sc.toRadians(sc.SolarAltitudeAngle()))
-	return sc.toDegrees(math.Acos(sinAltitudeAngle))
+	declination := sc.toRadians(sc.SolarDeclination())
+	latitude := sc.toRadians(sc.latitude)
+	hourAngle := sc.toRadians(sc.SunHourAngle())
+
+	sin := math.Sin(latitude) * math.Sin(declination)
+	cos := math.Cos(latitude) * math.Cos(declination) * math.Cos(hourAngle)
+
+	return sc.toDegrees(math.Acos(sin + cos))
 }
 
 func (sc *SolarCalculation) SolarAzimuthAngle() float64 {
+	var mod float64
+	hourAngle := sc.SunHourAngle()
+	latitude := sc.toRadians(sc.latitude)
+	zenithAngle := sc.toRadians(sc.SolarZenithAngle())
 	declination := sc.toRadians(sc.SolarDeclination())
-	solarAltitude := sc.toRadians(sc.SolarAltitudeAngle())
-	hourAngle := sc.toRadians(sc.SunHourAngle())
-	sinAz := (math.Cos(declination) * math.Sin(hourAngle)) / math.Cos(solarAltitude)
-	return math.Asin(sinAz)
+
+	num := (math.Sin(latitude) * math.Cos(zenithAngle)) - math.Sin(declination)
+	cosSin := math.Cos(latitude) * math.Sin(zenithAngle)
+	formula := sc.toDegrees(math.Acos(num / cosSin))
+
+	if hourAngle > 0 {
+		mod = formula + 180
+	} else {
+		mod = 540 - formula
+	}
+
+	return math.Mod(mod, 360)
 }
 
-func (sc *SolarCalculation) SolarIncidenceAngle(day int, latitude float64, tiltAngle float64, surfaceAzimuth float64, hourAngleDeg float64) float64 {
-	return 0
+// Returns the SolarIncidenceAngle in degrees
+func (sc *SolarCalculation) SolarIncidenceAngle() float64 {
+
+	return 90 - sc.SolarZenithAngle()
+}
+
+func (sc *SolarCalculation) IncidenceOnTiltedSurface(surfaceAngle, surfaceAzimuth float64) float64 {
+	latitude := sc.toRadians(sc.latitude)
+	declination := sc.toRadians(sc.SolarDeclination())
+	azimuth := sc.toRadians(surfaceAzimuth)
+	surfaceAngle = sc.toRadians(surfaceAngle)
+	hourAngle := sc.toRadians(sc.SunHourAngle())
+
+	seasonalTilt := math.Sin(latitude) * math.Sin(declination) * math.Cos(surfaceAngle)
+	azmTerm := math.Cos(latitude) * math.Sin(declination) * math.Cos(azimuth) * math.Sin(surfaceAngle)
+	hourTerm := math.Cos(latitude) * math.Cos(declination) * math.Cos(hourAngle) * math.Cos(surfaceAngle)
+	hourAzim := math.Sin(latitude) * math.Cos(declination) * math.Cos(hourAngle) * math.Sin(surfaceAngle) * math.Cos(azimuth)
+	declAzim := math.Cos(declination) * math.Sin(hourAngle) * math.Sin(surfaceAngle) * math.Sin(azimuth)
+
+	cosAng := seasonalTilt - azmTerm + hourTerm + hourAzim + declAzim
+	angle := math.Acos(cosAng)
+	return sc.toDegrees(angle)
 }
 
 // SunriseAndSunset returns the sunrise and sunset time as hours in solar time.
 func (sc *SolarCalculation) SunriseAndSunset() (sunrise, sunset float64) {
 	solarNoon := sc.SolarNoon()
-	hourAngle := sc.SunHourAngle()
+	hourAngle := sc.HourAngleSunrise()
 
 	sunrise = (solarNoon*360 - hourAngle) / 15
 	sunset = (solarNoon*360 + hourAngle) / 15
