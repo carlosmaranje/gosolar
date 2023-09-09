@@ -1,5 +1,5 @@
 # gosolar
-A go package with info related to the sun movement
+A `Go` package with info related to the sun movement
 
 Calculations made by this package are done using NOAA's methods. You can find more information on their website: 
 
