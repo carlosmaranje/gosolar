@@ -13,7 +13,7 @@ type SolarCalculation struct {
 	longitude float64 // float Degrees
 	date      string  // string "YYYY-MM-DD"
 	dayTime   float64 // float time of the day/24
-	timeZone  float64 // float UTC timezone in hours. GMT+12:30 = 12.5
+	timeZone  float64 // string Timezone ID
 }
 
 // Calculator acts as a constructor for the module. This allows to perform some validations before implementing SolarCalculation struct
