@@ -16,6 +16,7 @@ type SolarCalculation struct {
 	timeZone  float64 // float UTC timezone in hours. GMT+12:30 = 12.5
 }
 
+// Calculator acts as a constructor for the module. This allows to perform some validations before implementing SolarCalculation struct
 func Calculator(latitude, longitude, dayTime float64, timeZone, date string) (*SolarCalculation, error) {
 
 	tz, _ := TimeZoneOffset(timeZone)
