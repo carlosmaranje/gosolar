@@ -49,6 +49,6 @@ Please notice that `Calculator()` expects a valid string as a `timeZone` e.g. "A
 to determine the current offset for that `timeZone` including daylight saving time (DST). `Calculator()` then will determine 
 the timezone offset using `TimeZoneOffset()` and use this value (`float64`) to initialize a `SolarCalculation` object. 
 
-### Disclaimer
+## Disclaimer
 This library is not associated in any way, shape or form with NOAA
 
