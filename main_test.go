@@ -39,7 +39,7 @@ func TestResults(t *testing.T) {
 	longitude := -80.37486         // float Degrees
 	date := "2023-06-16"           // string "YYYY-MM-DD"
 	dayTime := 0.64                // float time of the day/24
-	timeZone := "America/New_York" // float UTC timezone in hours. GMT+12:30 = 12.5
+	timeZone := "America/New_York" // string Timezone ID
 	tz, _ := TimeZoneOffset("America/New_York")
 
 	sun, err := Calculator(latitude, longitude, dayTime, timeZone, date)
