@@ -35,6 +35,7 @@ func Calculator(latitude, longitude, dayTime float64, timeZone, date string) (*S
 	return sc, nil
 }
 
+// Setters
 func (sc *SolarCalculation) SetLatitude(latitude float64) *SolarCalculation {
 	sc.latitude = latitude
 	return sc
@@ -132,10 +133,13 @@ func (sc *SolarCalculation) EquationOfTime() float64 {
 	return formula
 }
 
+// SolarNoon returns the solar noon time in hours
 func (sc *SolarCalculation) SolarNoon() float64 {
 	return (720 - 4*sc.longitude - sc.EquationOfTime() + float64(sc.timeZone)*60) / 1440
 }
 
+// SunEquationOfCenter returns the angular difference between the actual position 
+// of the sun in its elliptical orbit and the position it would occupy if its motion were uniform 
 func (sc *SolarCalculation) SunEquationOfCenter() float64 {
 	meanAnomaly := sc.GeomMeanAnomSun()
 	jC := sc.JulianCentury()
@@ -147,21 +151,25 @@ func (sc *SolarCalculation) SunEquationOfCenter() float64 {
 	return term1 + term2 + term3
 }
 
+// SunTrueLongitude returns the Sun's true longitude, in degrees
 func (sc *SolarCalculation) SunTrueLongitude() float64 {
 	return sc.GeomMeanLongSun() + sc.SunEquationOfCenter()
 }
 
+// TrueSolarTime returns the true solar time in minutes
 func (sc *SolarCalculation) TrueSolarTime() float64 {
 	result := sc.dayTime*1440 + sc.EquationOfTime() + 4*sc.longitude - 60*sc.timeZone
 	return math.Mod(result, 1440)
 }
 
+// SunApparentLongitude returns the Sun's apparent longitude, in degrees
 func (sc *SolarCalculation) SunApparentLongitude() float64 {
 	sunTrueLongitude := sc.SunTrueLongitude()
 	jC := sc.JulianCentury()
 	return sunTrueLongitude - 0.00569 - 0.00478*math.Sin(sc.toRadians(125.04-1934.136*jC))
 }
 
+// MeanObliqEcliptic returns the mean inclination of Earth's equator with respect to the ecliptic
 func (sc *SolarCalculation) MeanObliqEcliptic() float64 {
 	jC := sc.JulianCentury()
 	term2 := 26.0 + ((21.448 - jC*(46.815+jC*(0.00059-jC*0.001813))) / 60.0)
@@ -169,6 +177,7 @@ func (sc *SolarCalculation) MeanObliqEcliptic() float64 {
 	return 23.0 + term2/60.0
 }
 
+// ObliqueCorrection returns the oblique correction
 func (sc *SolarCalculation) ObliqueCorrection() float64 {
 	jC := sc.JulianCentury()
 	moe := sc.MeanObliqEcliptic()
@@ -186,10 +195,12 @@ func (sc *SolarCalculation) SolarDeclination() float64 {
 	return sc.toDegrees(declination)
 }
 
+// SunHourAngle returns the hour angle of the sun in degrees
 func (sc *SolarCalculation) SunHourAngle() float64 {
 	return (sc.TrueSolarTime() / 4) - 180
 }
 
+// HourAngleSunrise returns the hour angle of the sun at sunrise in degrees
 func (sc *SolarCalculation) HourAngleSunrise() float64 {
 	declination := sc.toRadians(sc.SolarDeclination())
 	latitude := sc.toRadians(sc.latitude)
@@ -215,6 +226,8 @@ func (sc *SolarCalculation) SolarZenithAngle() float64 {
 	return sc.toDegrees(math.Acos(sin + cos))
 }
 
+// SolarAzimuthAngle returns the Solar azimuth angle in degrees calculated from the solar altitude angle,
+// assuming (sin altitude = cos zenith) then (zenith = Acos(sin altitude))
 func (sc *SolarCalculation) SolarAzimuthAngle() float64 {
 	var mod float64
 	hourAngle := sc.SunHourAngle()
@@ -241,6 +254,7 @@ func (sc *SolarCalculation) SolarIncidenceAngle() float64 {
 	return 90 - sc.SolarZenithAngle()
 }
 
+// IncidenceOnTiltedSurface returns the Solar incidence angle on a tilted surface in degrees
 func (sc *SolarCalculation) IncidenceOnTiltedSurface(surfaceAngle, surfaceAzimuth float64) float64 {
 	latitude := sc.toRadians(sc.latitude)
 	declination := sc.toRadians(sc.SolarDeclination())
@@ -278,11 +292,13 @@ func (sc *SolarCalculation) DayLength() float64 {
 	return dayLength
 }
 
+// SunriseTime returns the sunrise time in hours
 func (sc *SolarCalculation) SunriseTime() float64 {
 	sunrise, _ := sc.SunriseAndSunset()
 	return sunrise
 }
 
+// SunsetTime returns the sunset time in hours
 func (sc *SolarCalculation) SunsetTime() float64 {
 	_, sunset := sc.SunriseAndSunset()
 	return sunset
@@ -359,6 +375,8 @@ func (sc *SolarCalculation) toDateFormatted(day int, year int) string {
 	return date.Format(dateFormat)
 }
 
+// validate performs some validations on the SolarCalculation struct
+// validations are: latitude between -90 and 90, longitude between -180 and 180, date in format YYYY-MM-DD,
 func (sc *SolarCalculation) validate() error {
 	// Validate latitude
 	if sc.latitude < -90 || sc.latitude > 90 {
