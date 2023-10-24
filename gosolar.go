@@ -35,7 +35,7 @@ func Calculator(latitude, longitude, dayTime float64, timeZone, date string) (*S
 	return sc, nil
 }
 
-// Setters
+// TODO Setters
 func (sc *SolarCalculation) SetLatitude(latitude float64) *SolarCalculation {
 	sc.latitude = latitude
 	return sc
@@ -56,15 +56,7 @@ func (sc *SolarCalculation) SetDayTime(daytime float64) *SolarCalculation {
 	return sc
 }
 
-// Getters
-func (sc *SolarCalculation) GetTimeZone() float64 {
-	return sc.timeZone
-}
-
-func (sc *SolarCalculation) SetTimeZone(timeZone float64) *SolarCalculation {
-	sc.timeZone = timeZone
-	return sc
-}
+// TODO Getters
 
 // JulianDay returns the Julian Day number for a valid date given in format YYYY-MM-DD. The result can be corrected for
 // time of the day (0 <= dayTime <=1) and timeZone (UTC)
