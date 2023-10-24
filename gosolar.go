@@ -16,7 +16,7 @@ type SolarCalculation struct {
 	timeZone  float64 // string Timezone ID
 }
 
-// Calculator acts as a constructor for the module. This allows to perform some validations before implementing SolarCalculation struct
+// Calculator acts as a constructor for the module. This allows to perform some validations before implementing solarCalculation struct
 func Calculator(latitude, longitude, dayTime float64, timeZone, date string) (*SolarCalculation, error) {
 
 	tz, _ := TimeZoneOffset(timeZone)
@@ -54,6 +54,11 @@ func (sc *SolarCalculation) SetLongitude(longitude float64) *SolarCalculation {
 func (sc *SolarCalculation) SetDayTime(daytime float64) *SolarCalculation {
 	sc.dayTime = daytime
 	return sc
+}
+
+// Getters
+func (sc *SolarCalculation) GetTimeZone() float64 {
+	return sc.timeZone
 }
 
 func (sc *SolarCalculation) SetTimeZone(timeZone float64) *SolarCalculation {
@@ -138,8 +143,8 @@ func (sc *SolarCalculation) SolarNoon() float64 {
 	return (720 - 4*sc.longitude - sc.EquationOfTime() + float64(sc.timeZone)*60) / 1440
 }
 
-// SunEquationOfCenter returns the angular difference between the actual position 
-// of the sun in its elliptical orbit and the position it would occupy if its motion were uniform 
+// SunEquationOfCenter returns the angular difference between the actual position
+// of the sun in its elliptical orbit and the position it would occupy if its motion were uniform
 func (sc *SolarCalculation) SunEquationOfCenter() float64 {
 	meanAnomaly := sc.GeomMeanAnomSun()
 	jC := sc.JulianCentury()
@@ -304,11 +309,11 @@ func (sc *SolarCalculation) SunsetTime() float64 {
 	return sunset
 }
 
-// TimeZoneOffset returns the offset in seconds for a given TimeZone
+// TimeZoneOffset returns the offset in seconds for a given TimeZone id
 func TimeZoneOffset(timeZoneId string) (int, error) {
 	location, err := time.LoadLocation(timeZoneId)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("error:", err)
 		return -1, err
 	}
 
@@ -373,6 +378,11 @@ func (sc *SolarCalculation) toDateFormatted(day int, year int) string {
 	fmt.Println(date.Format(dateFormat))
 
 	return date.Format(dateFormat)
+}
+
+func (sc *SolarCalculation) roundTo(value float64, decimals int) float64 {
+	pow := math.Pow(10, float64(decimals))
+	return math.Round(value*pow) / pow
 }
 
 // validate performs some validations on the SolarCalculation struct
