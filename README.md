@@ -39,7 +39,7 @@ func main() {
 	// Returns the incidence angle on a surface tilted 35 degrees from the ground and pointing south
 	tiltedAngle := sun.IncidenceOnTiltedSurface(35, 180)
 
-	message := fmt.Sprintf("declination: %f, Incidence on roof: %f", declination, tiltedAngle)
+	fmt.Sprintf("declination: %f, Incidence on roof: %f", declination, tiltedAngle)
 }
 
 ```
