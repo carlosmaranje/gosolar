@@ -22,7 +22,7 @@ import (
 	"github.com/karlsmaranjs/gosolar"
 )
 
-func main() string {
+func main() {
 	latitude := 35.0               // float Degrees
 	longitude := -80.37486         // float Degrees
 	date := "2023-06-16"           // string "YYYY-MM-DD"
@@ -40,7 +40,6 @@ func main() string {
 	tiltedAngle := sun.IncidenceOnTiltedSurface(35, 180)
 
 	message := fmt.Sprintf("declination: %f, Incidence on roof: %f", declination, tiltedAngle)
-	return message
 }
 
 ```
