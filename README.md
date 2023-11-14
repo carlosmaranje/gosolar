@@ -14,7 +14,7 @@ You should use the method `Calculator()` to return a `SolarCalculation` object t
 methods in the module.
 
 ```go
-package gosolar
+package main
 
 import (
 	"fmt"
