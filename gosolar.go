@@ -36,25 +36,6 @@ func Calculator(latitude, longitude, dayTime float64, timeZone, date string) (*S
 }
 
 // TODO Setters
-func (sc *SolarCalculation) SetLatitude(latitude float64) *SolarCalculation {
-	sc.latitude = latitude
-	return sc
-}
-
-func (sc *SolarCalculation) SetDate(date string) *SolarCalculation {
-	sc.date = date
-	return sc
-}
-
-func (sc *SolarCalculation) SetLongitude(longitude float64) *SolarCalculation {
-	sc.longitude = longitude
-	return sc
-}
-
-func (sc *SolarCalculation) SetDayTime(daytime float64) *SolarCalculation {
-	sc.dayTime = daytime
-	return sc
-}
 
 // TODO Getters
 
