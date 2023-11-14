@@ -29,7 +29,7 @@ func main() {
 	dayTime := 0.64                // float time of the day/24. 12:00:00 PM = 0.5
 	timeZone := "America/New_York" // string Timezone ID
 
-	sun, err := Calculator(latitude, longitude, dayTime, timeZone, date)
+	sun, err := gosolar.Calculator(latitude, longitude, dayTime, timeZone, date)
 	if err != nil {
 		log.Fatalf("Error calculating sun info: %v", err)
 	}
