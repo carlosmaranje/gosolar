@@ -9,11 +9,11 @@ import (
 )
 
 type SolarCalculation struct {
-	latitude  float64 // float Degrees
-	longitude float64 // float Degrees
-	date      string  // string "YYYY-MM-DD"
-	dayTime   float64 // float time of the day/24
-	timeZone  float64 // string Timezone ID
+	latitude       float64 // float Degrees
+	longitude      float64 // float Degrees
+	date           string  // string "YYYY-MM-DD"
+	dayTime        float64 // float time of the day/24
+	timeZoneOffset float64 // float timezone UTC offset in seconds
 }
 
 // Calculator acts as a constructor for the module. This allows to perform some validations before implementing solarCalculation struct
@@ -22,11 +22,11 @@ func Calculator(latitude, longitude, dayTime float64, timeZone, date string) (*S
 	tz, _ := TimeZoneOffset(timeZone)
 
 	sc := &SolarCalculation{
-		latitude:  latitude,
-		longitude: longitude,
-		date:      date,
-		dayTime:   dayTime,
-		timeZone:  float64(tz) / 3600,
+		latitude:       latitude,
+		longitude:      longitude,
+		date:           date,
+		dayTime:        dayTime,
+		timeZoneOffset: float64(tz) / 3600,
 	}
 
 	if err := sc.validate(); err != nil {
@@ -35,12 +35,77 @@ func Calculator(latitude, longitude, dayTime float64, timeZone, date string) (*S
 	return sc, nil
 }
 
-// TODO Setters
+// Setters
 
-// TODO Getters
+func (sc *SolarCalculation) SetLatitude(lat float64) error {
+	if lat < -90 || lat > 90 {
+		return errors.New("latitude must be between -90 and 90 degrees")
+	}
+	sc.latitude = lat
+	return nil
+}
+
+func (sc *SolarCalculation) SetLongitude(lon float64) error {
+	if lon < -180 || lon > 180 {
+		return errors.New("longitude must be between -180 and 180 degrees")
+	}
+	sc.longitude = lon
+	return nil
+}
+
+func (sc *SolarCalculation) SetDate(date string) error {
+	if matched, _ := regexp.MatchString(`\d{4}-\d{2}-\d{2}`, date); !matched {
+		return errors.New("date must be in format YYYY-MM-DD")
+	}
+	sc.date = date
+	return nil
+}
+
+func (sc *SolarCalculation) SetDayTime(dayTime float64) error {
+	if dayTime < 0 || dayTime > 1 {
+		return errors.New("dayTime must be between 0 and 1")
+	}
+	sc.dayTime = dayTime
+	return nil
+}
+
+func (sc *SolarCalculation) SetTimeZone(timeZone string) error {
+	tzOffset, err := TimeZoneOffset(timeZone)
+	if err != nil {
+		return err
+	}
+	sc.timeZoneOffset = float64(tzOffset) / 3600
+	return nil
+}
+
+// Getters
+
+func (sc *SolarCalculation) GetLatitude() float64 {
+	return sc.latitude
+}
+
+func (sc *SolarCalculation) GetLongitude() float64 {
+	return sc.longitude
+}
+
+func (sc *SolarCalculation) GetDate() string {
+	return sc.date
+}
+
+func (sc *SolarCalculation) GetTimeZone() float64 {
+	return sc.timeZoneOffset
+}
+
+func (sc *SolarCalculation) GetDayTime() float64 {
+	return sc.dayTime
+}
+
+func (sc *SolarCalculation) GetTimeZoneOffset() float64 {
+	return sc.timeZoneOffset
+}
 
 // JulianDay returns the Julian Day number for a valid date given in format YYYY-MM-DD. The result can be corrected for
-// time of the day (0 <= dayTime <=1) and timeZone (UTC)
+// time of the day (0 <= dayTime <=1) and timeZoneOffset (UTC)
 func (sc *SolarCalculation) JulianDay() float64 {
 	startEpoch := 2415020.5
 	epoch := time.Date(1900, time.January, 1, 0, 0, 0, 0, time.UTC)
@@ -54,7 +119,7 @@ func (sc *SolarCalculation) JulianDay() float64 {
 	elapsed := parsedDate.Sub(epoch)
 	days := elapsed.Hours() / 24
 
-	return days + startEpoch + (sc.dayTime - float64(sc.timeZone)/24)
+	return days + startEpoch + (sc.dayTime - float64(sc.timeZoneOffset)/24)
 }
 
 // JulianCentury returns the value of Julian Century
@@ -63,14 +128,14 @@ func (sc *SolarCalculation) JulianCentury() float64 {
 }
 
 // GeomMeanLongSun returns The geometric mean longitude of the Sun, in degrees. For any given date in format YYYY-MM-DD.
-// The result can be corrected for time of the day (0 <= dayTime <=1) and timeZone (UTC)
+// The result can be corrected for time of the day (0 <= dayTime <=1) and timeZoneOffset (UTC)
 func (sc *SolarCalculation) GeomMeanLongSun() float64 {
 	jCent := sc.JulianCentury()
 	return math.Mod(280.46646+(jCent*(36000.76983+jCent*0.0003032)), 360)
 }
 
 // GeomMeanAnomSun returns The geometric mean anomaly of the Sun, in degrees. For any given date in format YYYY-MM-DD.
-// The result can be corrected for time of the day (0 <= dayTime <=1) and timeZone (UTC)
+// The result can be corrected for time of the day (0 <= dayTime <=1) and timeZoneOffset (UTC)
 func (sc *SolarCalculation) GeomMeanAnomSun() float64 {
 	jCent := sc.JulianCentury()
 
@@ -78,7 +143,7 @@ func (sc *SolarCalculation) GeomMeanAnomSun() float64 {
 }
 
 // EccentEarthOrbit returns The eccentricity of the Earth's orbit, in degrees. For any given date in format YYYY-MM-DD.
-// The result can be corrected for time of the day (0 <= dayTime <=1) and timeZone (UTC)
+// The result can be corrected for time of the day (0 <= dayTime <=1) and timeZoneOffset (UTC)
 func (sc *SolarCalculation) EccentEarthOrbit() float64 {
 	jCent := sc.JulianCentury()
 
@@ -113,7 +178,7 @@ func (sc *SolarCalculation) EquationOfTime() float64 {
 
 // SolarNoon returns the solar noon time in hours
 func (sc *SolarCalculation) SolarNoon() float64 {
-	return (720 - 4*sc.longitude - sc.EquationOfTime() + float64(sc.timeZone)*60) / 1440
+	return (720 - 4*sc.longitude - sc.EquationOfTime() + float64(sc.timeZoneOffset)*60) / 1440
 }
 
 // SunEquationOfCenter returns the angular difference between the actual position
@@ -136,7 +201,7 @@ func (sc *SolarCalculation) SunTrueLongitude() float64 {
 
 // TrueSolarTime returns the true solar time in minutes
 func (sc *SolarCalculation) TrueSolarTime() float64 {
-	result := sc.dayTime*1440 + sc.EquationOfTime() + 4*sc.longitude - 60*sc.timeZone
+	result := sc.dayTime*1440 + sc.EquationOfTime() + 4*sc.longitude - 60*sc.timeZoneOffset
 	return math.Mod(result, 1440)
 }
 
@@ -381,8 +446,8 @@ func (sc *SolarCalculation) validate() error {
 		return errors.New("invalid date: " + err.Error())
 	}
 
-	// Validate timeZone
-	if sc.timeZone < -12 || sc.timeZone > 14 {
+	// Validate timeZoneOffset
+	if sc.timeZoneOffset < -12 || sc.timeZoneOffset > 14 {
 		return errors.New("invalid time zone: must be between -12 and 14")
 	}
 
