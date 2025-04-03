@@ -37,6 +37,7 @@ func Calculator(latitude, longitude, dayTime float64, timeZone, date string) (*S
 
 // Setters
 
+// SetLatitude sets the latitude value in degrees. Valid values are between -90 and 90.
 func (sc *SolarCalculation) SetLatitude(lat float64) error {
 	if lat < -90 || lat > 90 {
 		return errors.New("latitude must be between -90 and 90 degrees")
@@ -45,6 +46,7 @@ func (sc *SolarCalculation) SetLatitude(lat float64) error {
 	return nil
 }
 
+// SetLongitude sets the longitude value in degrees. Valid values are between -180 and 180.
 func (sc *SolarCalculation) SetLongitude(lon float64) error {
 	if lon < -180 || lon > 180 {
 		return errors.New("longitude must be between -180 and 180 degrees")
@@ -53,6 +55,7 @@ func (sc *SolarCalculation) SetLongitude(lon float64) error {
 	return nil
 }
 
+// SetDate sets the calculation date in format YYYY-MM-DD.
 func (sc *SolarCalculation) SetDate(date string) error {
 	if matched, _ := regexp.MatchString(`\d{4}-\d{2}-\d{2}`, date); !matched {
 		return errors.New("date must be in format YYYY-MM-DD")
@@ -61,6 +64,8 @@ func (sc *SolarCalculation) SetDate(date string) error {
 	return nil
 }
 
+// SetDayTime sets the fractional time of day between 0 and 1, where 0 represents the start of the day
+// and 1 represents the end of the day.
 func (sc *SolarCalculation) SetDayTime(dayTime float64) error {
 	if dayTime < 0 || dayTime > 1 {
 		return errors.New("dayTime must be between 0 and 1")
@@ -69,6 +74,8 @@ func (sc *SolarCalculation) SetDayTime(dayTime float64) error {
 	return nil
 }
 
+// SetTimeZone sets the timezone using the IANA Time Zone database name (e.g., "America/New_York", "Europe/London").
+// The timezone offset will be calculated automatically.
 func (sc *SolarCalculation) SetTimeZone(timeZone string) error {
 	tzOffset, err := TimeZoneOffset(timeZone)
 	if err != nil {
@@ -104,8 +111,10 @@ func (sc *SolarCalculation) GetTimeZoneOffset() float64 {
 	return sc.timeZoneOffset
 }
 
-// JulianDay returns the Julian Day number for a valid date given in format YYYY-MM-DD. The result can be corrected for
-// time of the day (0 <= dayTime <=1) and timeZoneOffset (UTC)
+// JulianDay calculates the Julian Day number for the current date.
+// It accounts for the time of day and timezone offset.
+// The Julian Day is the continuous count of days since the beginning of the Julian Period.
+// Returns the Julian Day as a float64.
 func (sc *SolarCalculation) JulianDay() float64 {
 	startEpoch := 2415020.5
 	epoch := time.Date(1900, time.January, 1, 0, 0, 0, 0, time.UTC)
@@ -122,7 +131,9 @@ func (sc *SolarCalculation) JulianDay() float64 {
 	return days + startEpoch + (sc.dayTime - float64(sc.timeZoneOffset)/24)
 }
 
-// JulianCentury returns the value of Julian Century
+// JulianCentury calculates the number of Julian centuries since J2000.0 (January 1, 2000, 12:00 GMT).
+// This is commonly used in astronomical calculations.
+// Returns the Julian Century as a float64.
 func (sc *SolarCalculation) JulianCentury() float64 {
 	return (sc.JulianDay() - 2451545) / 36525
 }
@@ -199,7 +210,9 @@ func (sc *SolarCalculation) SunTrueLongitude() float64 {
 	return sc.GeomMeanLongSun() + sc.SunEquationOfCenter()
 }
 
-// TrueSolarTime returns the true solar time in minutes
+// TrueSolarTime calculates the true solar time at the specified location and date.
+// True solar time takes into account variations in the Earth's speed of rotation.
+// Returns the true solar time in minutes.
 func (sc *SolarCalculation) TrueSolarTime() float64 {
 	result := sc.dayTime*1440 + sc.EquationOfTime() + 4*sc.longitude - 60*sc.timeZoneOffset
 	return math.Mod(result, 1440)
@@ -256,8 +269,10 @@ func (sc *SolarCalculation) HourAngleSunrise() float64 {
 	return sc.toDegrees(hourAngle)
 }
 
-// SolarZenithAngle returns the Solar zenith angle in degrees calculated from the solar altitude angle,
-// assuming (sin altitude = cos zenith) then (zenith = Acos(sin altitude))
+// SolarZenithAngle calculates the angle between the vertical (zenith) and the line to the sun, in degrees.
+// The zenith angle is complementary to the altitude angle (90° - altitude).
+// At sunrise/sunset, the zenith angle is approximately 90°.
+// Returns the solar zenith angle in degrees.
 func (sc *SolarCalculation) SolarZenithAngle() float64 {
 	declination := sc.toRadians(sc.SolarDeclination())
 	latitude := sc.toRadians(sc.latitude)
@@ -269,8 +284,9 @@ func (sc *SolarCalculation) SolarZenithAngle() float64 {
 	return sc.toDegrees(math.Acos(sin + cos))
 }
 
-// SolarAzimuthAngle returns the Solar azimuth angle in degrees calculated from the solar altitude angle,
-// assuming (sin altitude = cos zenith) then (zenith = Acos(sin altitude))
+// SolarAzimuthAngle calculates the compass direction from which the sunlight is coming, in degrees.
+// Azimuth is measured clockwise from north (0°), with east at 90°, south at 180°, and west at 270°.
+// Returns the solar azimuth angle in degrees.
 func (sc *SolarCalculation) SolarAzimuthAngle() float64 {
 	var mod float64
 	hourAngle := sc.SunHourAngle()
@@ -291,13 +307,33 @@ func (sc *SolarCalculation) SolarAzimuthAngle() float64 {
 	return math.Mod(mod, 360)
 }
 
-// Returns the SolarIncidenceAngle in degrees
+// SolarIncidenceAngle calculates the angle between the sun's rays and the normal to a horizontal surface.
+// This is equivalent to 90° minus the solar zenith angle.
+// Returns the solar incidence angle in degrees.
 func (sc *SolarCalculation) SolarIncidenceAngle() float64 {
 
 	return 90 - sc.SolarZenithAngle()
 }
 
-// IncidenceOnTiltedSurface returns the Solar incidence angle on a tilted surface in degrees
+// IncidenceOnTiltedSurface calculates the angle between the sun's rays and the normal to a tilted surface.
+//
+// The calculation accounts for:
+//   - Geographic location (using the struct's latitude)
+//   - Time of day (via the sun hour angle)
+//   - Date (via solar declination)
+//   - Surface orientation (through the input parameters)
+//
+// Parameters:
+//   - surfaceAngle: The tilt angle of the surface from horizontal in degrees (0° is horizontal, 90° is vertical)
+//   - surfaceAzimuth: The azimuth angle of the surface in degrees, measured clockwise from north
+//     (0° is north, 90° is east, 180° is south, 270° is west)
+//
+// Returns:
+//   - The incidence angle in degrees. A smaller angle means the sun's rays are more perpendicular to the surface,
+//     resulting in higher effective irradiance. 90° means the rays are parallel to the surface.
+//
+// Note: This function integrates several astronomical calculations including solar declination
+// and hour angle to determine the precise sun position relative to the tilted surface.
 func (sc *SolarCalculation) IncidenceOnTiltedSurface(surfaceAngle, surfaceAzimuth float64) float64 {
 	latitude := sc.toRadians(sc.latitude)
 	declination := sc.toRadians(sc.SolarDeclination())
@@ -345,6 +381,27 @@ func (sc *SolarCalculation) SunriseTime() float64 {
 func (sc *SolarCalculation) SunsetTime() float64 {
 	_, sunset := sc.SunriseAndSunset()
 	return sunset
+}
+
+// EffectiveIrradiance calculates the amount of solar irradiance actually incident on a surface
+// by applying the cosine factor to the horizontal irradiance. This accounts for the reduction
+// in effective irradiance when sunlight strikes a surface at an angle.
+//
+// Parameters:
+//   - horizontalIrradiance: The solar irradiance measured on a horizontal surface
+//   - incidenceAngleDeg: The angle between the sun's rays and the normal to the surface (degrees)
+//
+// Returns:
+//   - The effective irradiance on the angled surface in the same units as the horizontalIrradiance
+func (sc *SolarCalculation) EffectiveIrradiance(horizontalIrradiance float64, incidenceAngleDeg float64) float64 {
+	angleRad := sc.toRadians(incidenceAngleDeg)
+	cosineFactor := math.Cos(angleRad)
+
+	if cosineFactor < 0 {
+		cosineFactor = 0
+	}
+
+	return horizontalIrradiance * cosineFactor
 }
 
 // TimeZoneOffset returns the offset in seconds for a given TimeZone id
