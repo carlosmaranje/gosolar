@@ -1,4 +1,4 @@
-module github.com/karlsmaranjs/gosolar
+module github.com/carlosmaranje/gosolar
 
 go 1.20
 
